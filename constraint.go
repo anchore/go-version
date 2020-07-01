@@ -1,6 +1,7 @@
 package version
 
 import (
+	"encoding/json"
 	"fmt"
 	"reflect"
 	"regexp"
@@ -249,4 +250,29 @@ func constraintTilde(v, c *Version) bool {
 	}
 
 	return true
+}
+
+
+// MarshalJSON - implement the json-Marshaler interface
+func (c *Constraints) MarshalJSON() ([]byte, error) {
+	return json.Marshal(c.String())
+}
+
+// UnmarshalJSON - implement the json-Unmarshaler interface
+func (c *Constraints) UnmarshalJSON(data []byte) (err error) {
+	var constraintStr string
+	var nc Constraints
+
+	err = json.Unmarshal(data, &constraintStr)
+	if err != nil {
+		return
+	}
+
+	nc, err = NewConstraint(constraintStr)
+	if err != nil {
+		return
+	}
+	*c = nc
+
+	return
 }
