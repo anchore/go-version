@@ -223,7 +223,6 @@ func constraintPessimistic(v, c *Version) bool {
 	return true
 }
 
-
 func constraintCaret(v, c *Version) bool {
 	if !prereleaseCheck(v, c) || v.LessThan(c) {
 		return false
@@ -251,7 +250,6 @@ func constraintTilde(v, c *Version) bool {
 
 	return true
 }
-
 
 // MarshalJSON - implement the json-Marshaler interface
 func (c *Constraints) MarshalJSON() ([]byte, error) {

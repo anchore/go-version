@@ -636,8 +636,6 @@ func TestLessThanOrEqual(t *testing.T) {
 	}
 }
 
-
-
 func TestJSON(t *testing.T) {
 	cases := []struct {
 		version string
@@ -684,4 +682,3 @@ func TestJSON(t *testing.T) {
 		}
 	}
 }
-

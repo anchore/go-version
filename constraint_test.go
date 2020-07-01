@@ -156,7 +156,6 @@ func TestConstraintsString(t *testing.T) {
 	}
 }
 
-
 func TestConstraintsJson(t *testing.T) {
 	type MyStruct struct {
 		MustVer Constraints

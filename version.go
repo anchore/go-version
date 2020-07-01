@@ -376,7 +376,6 @@ func (v *Version) Original() string {
 	return v.original
 }
 
-
 // UnmarshalJSON implements the enconding/json.UnmarshalJSON interface
 func (v *Version) UnmarshalJSON(b []byte) error {
 	var s string
@@ -396,4 +395,3 @@ func (v *Version) UnmarshalJSON(b []byte) error {
 func (v Version) MarshalJSON() ([]byte, error) {
 	return json.Marshal(v.String())
 }
-

@@ -1,5 +1,5 @@
 # Versioning Library for Go
-[![Build Status](https://circleci.com/gh/hashicorp/go-version/tree/master.svg?style=svg)](https://circleci.com/gh/hashicorp/go-version/tree/master)
+[![Build Status](https://circleci.com/gh/wagoodman/go-version/tree/master.svg?style=svg)](https://circleci.com/gh/hashicorp/go-version/tree/master)
 [![GoDoc](https://godoc.org/github.com/wagoodman/go-version?status.svg)](https://godoc.org/github.com/wagoodman/go-version)
 
 go-version is a library for parsing versions and version constraints,
