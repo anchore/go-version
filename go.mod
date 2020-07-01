@@ -1,3 +1,3 @@
-module github.com/wagoodman/go-version
+module github.com/anchore/go-version
 
 go 1.14
