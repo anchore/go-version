@@ -142,9 +142,7 @@ func prereleaseCheck(v, c *Version) bool {
 		return reflect.DeepEqual(c.Segments64(), v.Segments64())
 
 	case !cPre && vPre:
-		// A constraint without a pre-release can only match a version without a
-		// pre-release.
-		return false
+		// OK per https://semver.org/#spec-item-11 (#3)
 
 	case cPre && !vPre:
 		// OK, except with the pessimistic operator
