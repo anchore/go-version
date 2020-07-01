@@ -1,3 +1,3 @@
-module github.com/hashicorp/go-version
+module github.com/wagoodman/go-version
 
 go 1.14
