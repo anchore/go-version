@@ -216,11 +216,22 @@ func TestComparePreReleases(t *testing.T) {
 		{"3.0-alpha.3", "3.0-rc.1", -1},
 		{"3.0-alpha3", "3.0-rc1", -1},
 		{"3.0-alpha.1", "3.0-alpha.beta", -1},
-		{"5.4-alpha", "5.4-alpha.beta", 1},
+		{"5.4-alpha", "5.4-alpha.beta", -1},
+		{"5.4-beta", "5.4-alpha.beta", 1},
+		{"5.4-beta.2", "5.4-alpha.beta", 1},
 		{"v1.2-beta.2", "v1.2-beta.2", 0},
 		{"v1.2-beta.1", "v1.2-beta.2", -1},
 		{"v3.2-alpha.1", "v3.2-alpha", 1},
 		{"v3.2-rc.1-1-g123", "v3.2-rc.2", 1},
+		{"1.0.0-alpha", "1.0.0-alpha.1", -1},
+		{"1.0.0-alpha.1", "1.0.0-alpha.beta", -1},
+		{"1.0.0-alpha.beta", "1.0.0-beta", -1},
+		{"1.0.0-beta", "1.0.0-beta.2", -1},
+		{"1.0.0-beta.2", "1.0.0-beta.11", -1},
+		{"1.0.0-beta.11", "1.0.0-rc.1", -1},
+		{"1.0.0-rc.1", "1.0.0", -1},
+		//{"1.0.0-rc9", "1.0.0-rc10", -1}, // want to support one day
+		//{"v1.0.0-rc9", "1.0.0-rc10", -1}, // want to support one day
 	}
 
 	for _, tc := range cases {
