@@ -65,7 +65,6 @@ func newVersion(v string, pattern *regexp.Regexp) (*Version, error) {
 	}
 	segmentsStr := strings.Split(matches[1], ".")
 	segments := make([]int64, len(segmentsStr))
-	si := 0
 	for i, str := range segmentsStr {
 		val, err := strconv.ParseInt(str, 10, 64)
 		if err != nil {
@@ -73,8 +72,7 @@ func newVersion(v string, pattern *regexp.Regexp) (*Version, error) {
 				"Error parsing version: %s", err)
 		}
 
-		segments[i] = int64(val)
-		si++
+		segments[i] = val
 	}
 
 	// Even though we could support more than three segments, if we
@@ -93,7 +91,7 @@ func newVersion(v string, pattern *regexp.Regexp) (*Version, error) {
 		metadata: matches[10],
 		pre:      pre,
 		segments: segments,
-		si:       si,
+		si:       len(segmentsStr),
 		original: v,
 	}, nil
 }
