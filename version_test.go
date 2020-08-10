@@ -234,6 +234,8 @@ func TestComparePreReleases(t *testing.T) {
 		{"1.0.0-rc.1", "1.0.0", -1},
 		//{"1.0.0-rc9", "1.0.0-rc10", -1}, // want to support one day
 		//{"v1.0.0-rc9", "1.0.0-rc10", -1}, // want to support one day
+		{"0.9.9-r0", "0.9.12-r1", -1}, // regression
+		{"0.9.9-r0", "0.9.9-r1", -1},  // regression
 	}
 
 	for _, tc := range cases {
