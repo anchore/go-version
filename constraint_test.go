@@ -129,6 +129,19 @@ func TestConstraintCheck(t *testing.T) {
 		{"< 0.9.9-r1", "0.9.9-r0", true},   // regression
 		{"< 0.9.9-r1", "0.9.9-r11", false}, // regression
 		{"> 0.9.9-r1", "0.9.9-r11", true},  // regression
+		{"<= 1.3.3-r0", "1.3.2-r0", true},  // introduced for removal of prereleaseCheck from <=
+		//Tests below to test == versions with different pre releases for each operator
+		{"<= 1.3.3-r0", "1.3.3-r0", true},
+		{"<= 1.3.3-r0", "1.3.3-r1", false},
+		{"<= 1.3.3-r1", "1.3.3-r0", true},
+		{"= 1.3.3-r1", "1.3.3-r1", true},
+		{"= 1.3.3-r1", "1.3.3-r0", false},
+		{"> 1.3.3-r1", "1.3.3-r0", false},
+		{"> 1.3.3-r1", "1.3.3-r3", true},
+		{">= 1.3.3-r1", "1.3.3-r0", false},
+		{">= 1.3.3-r1", "1.3.3-r5", true},
+		{"< 1.3.3-r1", "1.3.3-r0", true},
+		{"< 1.3.3-r1", "1.3.3-r5", false},
 	}
 
 	for _, tc := range cases {

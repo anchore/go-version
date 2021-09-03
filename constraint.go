@@ -175,7 +175,7 @@ func constraintGreaterThanEqual(v, c *Version) bool {
 }
 
 func constraintLessThanEqual(v, c *Version) bool {
-	return prereleaseCheck(v, c) && v.Compare(c) <= 0
+	return v.Compare(c) <= 0
 }
 
 func constraintPessimistic(v, c *Version) bool {
