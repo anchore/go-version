@@ -142,6 +142,11 @@ func TestConstraintCheck(t *testing.T) {
 		{">= 1.3.3-r1", "1.3.3-r5", true},
 		{"< 1.3.3-r1", "1.3.3-r0", true},
 		{"< 1.3.3-r1", "1.3.3-r5", false},
+		{"< 1.7rc2", "1.7rc1", true},
+		{"< 1.7", "1.7rc2", true},
+		{"> 1.7rc2", "1.7.0", true},
+		{"= 1.7.0-rc2", "1.7rc2", true},
+		{"= 1.7rc2", "1.7.0-rc2", true},
 	}
 
 	for _, tc := range cases {
