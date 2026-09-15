@@ -1,26 +1,31 @@
+# Dependabot configuration
+
 version: 2
+
 updates:
-  - package-ecosystem: "gomod"
-    directory: "/"
+
+  - package-ecosystem: gomod
+    directories:
+      - "/"
+      - "/.make"
+    cooldown:
+      default-days: 7
     schedule:
       interval: "weekly"
-    labels: ["dependencies"]
-    groups:
-      go:
-        patterns:
-          - "*"
-
-  - package-ecosystem: github-actions
-    directory: /
-    schedule:
-      interval: weekly
+      day: "friday"
+    open-pull-requests-limit: 10
     labels:
-      - dependencies
-    groups:
-      github-actions-breaking:
-        update-types:
-          - major
-      github-actions-backward-compatible:
-        update-types:
-          - minor
-          - patch
+      - "dependencies"
+
+  - package-ecosystem: "github-actions"
+    directories:
+      - "/"
+      - "/.github/actions/*"
+    cooldown:
+      default-days: 7
+    schedule:
+      interval: "weekly"
+      day: "friday"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"

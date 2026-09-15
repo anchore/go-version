@@ -312,13 +312,14 @@ func comparePart(preSelf string, preOther string) int {
 		return 1
 	}
 
-	if selfNumeric && !otherNumeric {
+	switch {
+	case selfNumeric && !otherNumeric:
 		return -1
-	} else if !selfNumeric && otherNumeric {
+	case !selfNumeric && otherNumeric:
 		return 1
-	} else if selfNumeric && otherNumeric {
+	case selfNumeric && otherNumeric:
 		return compareNumericIdentifiers(preSelf, preOther)
-	} else if preSelf > preOther {
+	case preSelf > preOther:
 		return 1
 	}
 
@@ -344,7 +345,7 @@ func comparePrereleases(v string, other string) int {
 	}
 
 	// loop for parts to find the first difference
-	for i := 0; i < biggestLen; i = i + 1 {
+	for i := 0; i < biggestLen; i++ {
 		partSelfPre := ""
 		if i < selfPreReleaseLen {
 			partSelfPre = selfPreReleaseMeta[i]
@@ -491,7 +492,7 @@ func (v *Version) Original() string {
 	return v.original
 }
 
-// UnmarshalJSON implements the enconding/json.UnmarshalJSON interface
+// UnmarshalJSON implements the encoding/json.Unmarshaler interface
 func (v *Version) UnmarshalJSON(b []byte) error {
 	var s string
 	if err := json.Unmarshal(b, &s); err != nil {
@@ -506,7 +507,7 @@ func (v *Version) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-// MarshalJSON implements the enconding/json.MarshalJSON interface
+// MarshalJSON implements the encoding/json.Marshaler interface
 func (v Version) MarshalJSON() ([]byte, error) {
 	return json.Marshal(v.String())
 }
