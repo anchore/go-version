@@ -1,53 +1,56 @@
+// Copyright IBM Corp. 2014, 2025
+// SPDX-License-Identifier: MPL-2.0
+
 package version
 
 import (
 	"encoding/json"
 	"fmt"
-	"reflect"
 	"regexp"
+	"sort"
 	"strings"
+	"sync"
 )
+
+var (
+	constraintRegexp     *regexp.Regexp
+	constraintRegexpOnce sync.Once
+)
+
+func getConstraintRegexp() *regexp.Regexp {
+	constraintRegexpOnce.Do(func() {
+		// This heavy lifting only happens the first time this function is called
+		constraintRegexp = regexp.MustCompile(fmt.Sprintf(
+			`^\s*(%s)\s*(%s)\s*$`,
+			`<=|>=|!=|~>|\^|~|<|>|=|`,
+			VersionRegexpRaw,
+		))
+	})
+	return constraintRegexp
+}
 
 // Constraint represents a single constraint for a version, such as
 // ">= 1.0".
 type Constraint struct {
 	f        constraintFunc
+	op       operator
 	check    *Version
 	original string
 }
 
-// Constraints is a 2D slice of constraints.
+func (c *Constraint) Equals(con *Constraint) bool {
+	return c.op == con.op && c.check.Equal(con.check)
+}
+
+// Constraints is a 2D slice of constraints. The outer slice is a
+// disjunction (||) of conjunctions (,) of constraints.
 type Constraints [][]*Constraint
 
 type constraintFunc func(v, c *Version) bool
 
-var constraintOperators map[string]constraintFunc
-
-var constraintRegexp *regexp.Regexp
-
-func init() {
-	constraintOperators = map[string]constraintFunc{
-		"":   constraintEqual,
-		"=":  constraintEqual,
-		"!=": constraintNotEqual,
-		">":  constraintGreaterThan,
-		"<":  constraintLessThan,
-		">=": constraintGreaterThanEqual,
-		"<=": constraintLessThanEqual,
-		"~>": constraintPessimistic,
-		"^":  constraintCaret,
-		"~":  constraintTilde,
-	}
-
-	ops := make([]string, 0, len(constraintOperators))
-	for k := range constraintOperators {
-		ops = append(ops, regexp.QuoteMeta(k))
-	}
-
-	constraintRegexp = regexp.MustCompile(fmt.Sprintf(
-		`^\s*(%s)\s*(%s)\s*$`,
-		strings.Join(ops, "|"),
-		VersionRegexpRaw))
+type constraintOperation struct {
+	op operator
+	f  constraintFunc
 }
 
 // NewConstraint will parse one or more constraints from the given
@@ -73,6 +76,16 @@ func NewConstraint(cs string) (Constraints, error) {
 	return Constraints(or), nil
 }
 
+// MustConstraints is a helper that wraps a call to a function
+// returning (Constraints, error) and panics if error is non-nil.
+func MustConstraints(c Constraints, err error) Constraints {
+	if err != nil {
+		panic(err)
+	}
+
+	return c
+}
+
 // Check tests if a version satisfies all the constraints.
 func (cs Constraints) Check(v *Version) bool {
 	for _, o := range cs {
@@ -90,6 +103,94 @@ func (cs Constraints) Check(v *Version) bool {
 	}
 
 	return false
+}
+
+// Equals compares Constraints with other Constraints
+// for equality. This may not represent logical equivalence
+// of compared constraints.
+// e.g. even though '>0.1,>0.2' is logically equivalent
+// to '>0.2' it is *NOT* treated as equal.
+//
+// Missing operator is treated as equal to '=', whitespaces
+// are ignored and constraints are sorted before comparison.
+func (cs Constraints) Equals(c Constraints) bool {
+	if len(cs) != len(c) {
+		return false
+	}
+
+	// make copies to retain order of the original slices
+	left := cs.sorted()
+	right := c.sorted()
+
+	// compare sorted slices
+	for i, group := range left {
+		if len(group) != len(right[i]) {
+			return false
+		}
+
+		for j, con := range group {
+			if !con.Equals(right[i][j]) {
+				return false
+			}
+		}
+	}
+
+	return true
+}
+
+// sorted returns a copy of the constraints with each conjunction group
+// sorted, and the groups themselves sorted, so that two logically
+// identical sets of constraints compare element by element.
+func (cs Constraints) sorted() Constraints {
+	out := make(Constraints, len(cs))
+	for i, group := range cs {
+		g := make([]*Constraint, len(group))
+		copy(g, group)
+		sort.Stable(constraintGroup(g))
+		out[i] = g
+	}
+	sort.Stable(out)
+
+	return out
+}
+
+// constraintGroup is a single conjunction (comma separated) of constraints.
+type constraintGroup []*Constraint
+
+func (g constraintGroup) Len() int { return len(g) }
+
+func (g constraintGroup) Less(i, j int) bool {
+	if g[i].op != g[j].op {
+		return g[i].op < g[j].op
+	}
+
+	return g[i].check.LessThan(g[j].check)
+}
+
+func (g constraintGroup) Swap(i, j int) { g[i], g[j] = g[j], g[i] }
+
+// Len, Less and Swap sort the disjunction (||) groups. Use sorted to order
+// the constraints within each group as well.
+func (cs Constraints) Len() int {
+	return len(cs)
+}
+
+func (cs Constraints) Less(i, j int) bool {
+	a, b := cs[i], cs[j]
+	for k := 0; k < len(a) && k < len(b); k++ {
+		if a[k].op != b[k].op {
+			return a[k].op < b[k].op
+		}
+		if !a[k].check.Equal(b[k].check) {
+			return a[k].check.LessThan(b[k].check)
+		}
+	}
+
+	return len(a) < len(b)
+}
+
+func (cs Constraints) Swap(i, j int) {
+	cs[i], cs[j] = cs[j], cs[i]
 }
 
 // Returns the string format of the constraints
@@ -112,14 +213,20 @@ func (c *Constraint) Check(v *Version) bool {
 	return c.f(v, c.check)
 }
 
+// Prerelease returns true if the version underlying this constraint
+// contains a prerelease field.
+func (c *Constraint) Prerelease() bool {
+	return len(c.check.Prerelease()) > 0
+}
+
 func (c *Constraint) String() string {
 	return c.original
 }
 
 func parseSingle(v string) (*Constraint, error) {
-	matches := constraintRegexp.FindStringSubmatch(v)
+	matches := getConstraintRegexp().FindStringSubmatch(v)
 	if matches == nil {
-		return nil, fmt.Errorf("Malformed constraint: %s", v)
+		return nil, fmt.Errorf("malformed constraint: %s", v)
 	}
 
 	check, err := NewVersion(matches[2])
@@ -127,8 +234,33 @@ func parseSingle(v string) (*Constraint, error) {
 		return nil, err
 	}
 
+	var cop constraintOperation
+	switch matches[1] {
+	case "=":
+		cop = constraintOperation{op: equal, f: constraintEqual}
+	case "!=":
+		cop = constraintOperation{op: notEqual, f: constraintNotEqual}
+	case ">":
+		cop = constraintOperation{op: greaterThan, f: constraintGreaterThan}
+	case "<":
+		cop = constraintOperation{op: lessThan, f: constraintLessThan}
+	case ">=":
+		cop = constraintOperation{op: greaterThanEqual, f: constraintGreaterThanEqual}
+	case "<=":
+		cop = constraintOperation{op: lessThanEqual, f: constraintLessThanEqual}
+	case "~>":
+		cop = constraintOperation{op: pessimistic, f: constraintPessimistic}
+	case "^":
+		cop = constraintOperation{op: caret, f: constraintCaret}
+	case "~":
+		cop = constraintOperation{op: tilde, f: constraintTilde}
+	default:
+		cop = constraintOperation{op: equal, f: constraintEqual}
+	}
+
 	return &Constraint{
-		f:        constraintOperators[matches[1]],
+		f:        cop.f,
+		op:       cop.op,
 		check:    check,
 		original: v,
 	}, nil
@@ -139,7 +271,7 @@ func prereleaseCheck(v, c *Version) bool {
 	case cPre && vPre:
 		// A constraint with a pre-release can only match a pre-release version
 		// with the same base segments.
-		return reflect.DeepEqual(c.Segments64(), v.Segments64())
+		return v.equalSegments(c)
 	case !cPre && vPre:
 		// OK, per https://semver.org/#spec-item-11 (#3)
 	case cPre && !vPre:
@@ -153,6 +285,20 @@ func prereleaseCheck(v, c *Version) bool {
 //-------------------------------------------------------------------
 // Constraint functions
 //-------------------------------------------------------------------
+
+type operator rune
+
+const (
+	equal            operator = '='
+	notEqual         operator = '≠'
+	greaterThan      operator = '>'
+	lessThan         operator = '<'
+	greaterThanEqual operator = '≥'
+	lessThanEqual    operator = '≤'
+	pessimistic      operator = '~'
+	caret            operator = '^'
+	tilde            operator = '≈'
+)
 
 func constraintEqual(v, c *Version) bool {
 	return v.Equal(c)
