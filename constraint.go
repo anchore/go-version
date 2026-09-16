@@ -393,26 +393,23 @@ func constraintTilde(v, c *Version) bool {
 	return true
 }
 
-// MarshalJSON - implement the json-Marshaler interface
-func (c *Constraints) MarshalJSON() ([]byte, error) {
-	return json.Marshal(c.String())
+// MarshalJSON implements the encoding/json.Marshaler interface.
+func (cs *Constraints) MarshalJSON() ([]byte, error) {
+	return json.Marshal(cs.String())
 }
 
-// UnmarshalJSON - implement the json-Unmarshaler interface
-func (c *Constraints) UnmarshalJSON(data []byte) (err error) {
+// UnmarshalJSON implements the encoding/json.Unmarshaler interface.
+func (cs *Constraints) UnmarshalJSON(data []byte) error {
 	var constraintStr string
-	var nc Constraints
-
-	err = json.Unmarshal(data, &constraintStr)
-	if err != nil {
-		return
+	if err := json.Unmarshal(data, &constraintStr); err != nil {
+		return err
 	}
 
-	nc, err = NewConstraint(constraintStr)
+	nc, err := NewConstraint(constraintStr)
 	if err != nil {
-		return
+		return err
 	}
-	*c = nc
+	*cs = nc
 
-	return
+	return nil
 }

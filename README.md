@@ -1,7 +1,15 @@
 # Versioning Library for Go
 
-![Build Status](https://github.com/anchore/go-version/actions/workflows/go-tests.yml/badge.svg)
+[![Validations](https://github.com/anchore/go-version/actions/workflows/validations.yaml/badge.svg)](https://github.com/anchore/go-version/actions/workflows/validations.yaml)
 [![Go Reference](https://pkg.go.dev/badge/github.com/anchore/go-version.svg)](https://pkg.go.dev/github.com/anchore/go-version)
+[![GitHub go.mod Go version](https://img.shields.io/github/go-mod/go-version/anchore/go-version.svg)](https://github.com/anchore/go-version)
+[![License: MPL-2.0](https://img.shields.io/badge/License-MPL%202.0-blue.svg)](https://github.com/anchore/go-version/blob/main/LICENSE)
+[![Slack Invite](https://img.shields.io/badge/Slack-Join-blue?logo=slack)](https://anchore.com/slack)
+
+This is an Anchore-maintained fork of [hashicorp/go-version](https://github.com/hashicorp/go-version).
+It tracks upstream while keeping Anchore's additions: `||` (or) constraints, the `^` and `~`
+constraint operators, JSON marshalling for `Version` and `Constraints`, and prerelease handling
+that follows [semver spec item 11](https://semver.org/#spec-item-11).
 
 go-version is a library for parsing versions and version constraints,
 and verifying versions against a set of constraints. go-version
@@ -86,8 +94,28 @@ for i, raw := range versionsRaw {
 sort.Sort(version.Collection(versions))
 ```
 
+#### Or (`||`) Constraints
+
+```go
+constraints, err := version.NewConstraint(">= 1.0, < 1.4 || >= 2.0")
+```
+
+#### Caret and Tilde Constraints
+
+```go
+// ^1.2.0 allows any 1.x version at or above 1.2.0
+caret, err := version.NewConstraint("^1.2.0")
+
+// ~1.2.0 allows any 1.2.x version at or above 1.2.0
+tilde, err := version.NewConstraint("~1.2.0")
+```
+
 ## Issues and Contributing
 
 If you find an issue with this library, please report an issue. If you'd
-like, we welcome any contributions. Fork this library and submit a pull
-request.
+like, we welcome any contributions. See [CONTRIBUTING.md](CONTRIBUTING.md)
+for details.
+
+Changes that also apply upstream are best sent to
+[hashicorp/go-version](https://github.com/hashicorp/go-version) first, so this
+fork can pick them up on the next sync.
