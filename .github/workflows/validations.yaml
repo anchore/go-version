@@ -17,7 +17,7 @@ jobs:
       contents: read
     steps:
       # setup checkout, go, go-make, binny, and cache go modules
-      - uses: anchore/go-make/.github/actions/setup@27a9f35f41b5fe86d68815844efd2ba816e9ba6b # v0.9.1
+      - uses: anchore/go-make/.github/actions/setup@87a55e98f4e5e52a67d2cc5a3a0365070a380f65 # v0.9.4
 
       - name: Run static analysis
         run: make static-analysis
@@ -30,7 +30,7 @@ jobs:
       contents: read
     steps:
       # setup checkout, go, go-make, binny, and cache go modules
-      - uses: anchore/go-make/.github/actions/setup@27a9f35f41b5fe86d68815844efd2ba816e9ba6b # v0.9.1
+      - uses: anchore/go-make/.github/actions/setup@87a55e98f4e5e52a67d2cc5a3a0365070a380f65 # v0.9.4
 
       - name: Run unit tests
         run: make unit
